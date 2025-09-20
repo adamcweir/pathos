@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PrivacyLevel {
+  private
+  friends
+  public
+}
+
+enum ProjectStatus {
+  active
+  paused
+  completed
+  archived
+}
+
+enum ProjectStage {
+  idea
+  planning
+  development
+  testing
+  launch
+  maintenance
+}
+
+model User {
+  id            String       @id @default(cuid())
+  username      String       @unique
+  email         String?      @unique
+  password      String
+  name          String?
+  emailVerified DateTime?
+  image         String?
+  location      String?
+  privacy       PrivacyLevel @default(public)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+  projects Project[]
+  userPassions UserPassion[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Passion {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  icon        String?
+  color       String?
+  isCustom    Boolean  @default(false)
+  parentId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Self-referential relationship for hierarchical passions
+  parent   Passion?  @relation("PassionHierarchy", fields: [parentId], references: [id])
+  children Passion[] @relation("PassionHierarchy")
+
+  // Many-to-many with users
+  userPassions UserPassion[]
+  projects     Project[]
+}
+
+model UserPassion {
+  id        String   @id @default(cuid())
+  userId    String
+  passionId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  passion Passion @relation(fields: [passionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, passionId])
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  status      ProjectStatus @default(active)
+  stage       ProjectStage  @default(idea)
+  privacy     PrivacyLevel  @default(public)
+  userId      String
+  passionId   String
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  passion Passion @relation(fields: [passionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([passionId])
+}
