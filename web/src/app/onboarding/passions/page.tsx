@@ -50,6 +50,7 @@ export default function PassionDetailsPage() {
       fetch("/api/user/passions")
         .then(res => res.json())
         .then(data => {
+          console.log("Fetched user passions:", data);
           if (data.userPassions && data.userPassions.length > 0) {
             setUserPassions(data.userPassions);
             // Initialize empty details for each passion
@@ -175,8 +176,21 @@ export default function PassionDetailsPage() {
     );
   }
 
-  if (status === "unauthenticated" || userPassions.length === 0) {
+  if (status === "unauthenticated") {
     return null; // Redirect happening
+  }
+
+  if (!loading && userPassions.length === 0) {
+    // No passions found, redirect back to main onboarding
+    console.log("No user passions found, redirecting to main onboarding");
+    router.push("/onboarding");
+    return (
+      <main className="p-6 max-w-2xl mx-auto">
+        <div className="text-center">
+          <p className="text-white">No passions found. Redirecting...</p>
+        </div>
+      </main>
+    );
   }
 
   const currentDetails = passionDetails[currentPassion.passion.id];

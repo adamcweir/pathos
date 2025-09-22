@@ -83,8 +83,11 @@ export default function OnboardingPage() {
       });
 
       if (response.ok) {
-        // Continue to passion details setup
-        router.push("/onboarding/passions");
+        console.log("Passions saved successfully, navigating to details page...");
+        // Small delay to ensure database operation completes
+        setTimeout(() => {
+          router.push("/onboarding/passions");
+        }, 100);
       } else {
         setError("Failed to save your selections. Please try again.");
       }
