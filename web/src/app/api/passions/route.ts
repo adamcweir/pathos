@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth-config";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 
@@ -23,20 +24,16 @@ function generateSlug(name: string): string {
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    const session = await getServerSession(authOptions);
     const { searchParams } = new URL(req.url);
     const includeUserPassions = searchParams.get("includeUserPassions") === "true";
 
-    // Get all passions with optional user passion data
-    const passions = await prisma.passion.findMany({
+    // Get all passions
+    let passions = await prisma.passion.findMany({
       include: {
         parent: true,
         children: true,
-        userPassions: includeUserPassions ? {
+        userPassions: includeUserPassions && session?.user ? {
           where: { userId: session.user.id },
         } : false,
         _count: {
@@ -52,6 +49,51 @@ export async function GET(req: NextRequest) {
       ],
     });
 
+    // If no passions exist, create default ones
+    if (passions.length === 0) {
+      const defaultPassions = [
+        { name: "Art", slug: "art", description: "Creative visual expression", icon: "🎨", color: "#F97316" },
+        { name: "Cooking", slug: "cooking", description: "Culinary adventures", icon: "👨‍🍳", color: "#F59E0B" },
+        { name: "Writing", slug: "writing", description: "Words and stories", icon: "✍️", color: "#6B7280" },
+        { name: "Music", slug: "music", description: "Playing and listening", icon: "🎵", color: "#EC4899" },
+        { name: "Learning a Language", slug: "learning-a-language", description: "Expanding communication", icon: "🌍", color: "#3B82F6" },
+        { name: "Gardening", slug: "gardening", description: "Growing plants and food", icon: "🌱", color: "#22C55E" },
+        { name: "Studying", slug: "studying", description: "Academic pursuits", icon: "📚", color: "#8B5CF6" },
+        { name: "Composing", slug: "composing", description: "Creating musical works", icon: "🎼", color: "#EF4444" },
+      ];
+
+      // Create default passions in database
+      await prisma.passion.createMany({
+        data: defaultPassions,
+      });
+
+      // Fetch the created passions
+      passions = await prisma.passion.findMany({
+        include: {
+          parent: true,
+          children: true,
+          userPassions: includeUserPassions && session?.user ? {
+            where: { userId: session.user.id },
+          } : false,
+          _count: {
+            select: {
+              userPassions: true,
+              projects: true,
+            },
+          },
+        },
+        orderBy: [
+          { isCustom: "asc" },
+          { name: "asc" },
+        ],
+      });
+    }
+
+    // For onboarding (unauthenticated or simple format), return just the passion data
+    if (!session?.user || searchParams.get("simple") === "true") {
+      return NextResponse.json(passions);
+    }
+
     return NextResponse.json({ passions });
   } catch (error) {
     console.error("Error fetching passions:", error);
@@ -64,7 +106,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
+    const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

@@ -29,6 +29,21 @@ enum ProjectStage {
   maintenance
 }
 
+enum EntryType {
+  progress
+  milestone
+  note
+  media
+  link
+}
+
+enum MilestoneStatus {
+  planned
+  active
+  completed
+  skipped
+}
+
 model User {
   id            String       @id @default(cuid())
   username      String       @unique
@@ -46,6 +61,9 @@ model User {
   sessions Session[]
   projects Project[]
   userPassions UserPassion[]
+  entries Entry[]
+  milestones Milestone[]
+  tasks Task[]
 }
 
 model Account {
@@ -132,7 +150,99 @@ model Project {
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   passion Passion @relation(fields: [passionId], references: [id], onDelete: Cascade)
+  
+  entries Entry[]
+  milestones Milestone[]
+  tasks Task[]
 
   @@index([userId, status])
   @@index([passionId])
+}
+
+model Entry {
+  id          String      @id @default(cuid())
+  title       String
+  content     String?     // Rich text content
+  type        EntryType   @default(progress)
+  privacy     PrivacyLevel @default(public)
+  userId      String
+  projectId   String
+  milestoneId String?     // Optional link to milestone
+  
+  // Media and links
+  mediaUrls   String[]    // Array of media URLs
+  links       String[]    // Array of external links
+  tags        String[]    // Array of tags for categorization
+  
+  // Metadata
+  publishedAt DateTime?   // Null for drafts
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+
+  @@index([projectId, publishedAt])
+  @@index([userId, publishedAt])
+  @@index([milestoneId])
+}
+
+model Milestone {
+  id          String          @id @default(cuid())
+  title       String
+  description String?
+  status      MilestoneStatus @default(planned)
+  userId      String
+  projectId   String
+  
+  // Ordering and dependencies
+  order       Int             @default(0)
+  parentId    String?         // For nested milestones
+  
+  // Timeline
+  targetDate  DateTime?
+  completedAt DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  // Self-referential for milestone hierarchy
+  parent   Milestone?  @relation("MilestoneHierarchy", fields: [parentId], references: [id])
+  children Milestone[] @relation("MilestoneHierarchy")
+  
+  entries Entry[]
+  tasks   Task[]
+
+  @@index([projectId, order])
+  @@index([userId, status])
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  completed   Boolean  @default(false)
+  userId      String
+  projectId   String?  // Optional - can be standalone
+  milestoneId String?  // Optional - can be unassigned
+  
+  // Ordering
+  order       Int      @default(0)
+  
+  // Timeline
+  dueDate     DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+
+  @@index([userId, completed])
+  @@index([projectId, order])
+  @@index([milestoneId, order])
 }

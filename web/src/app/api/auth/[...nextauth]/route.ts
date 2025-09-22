@@ -1,7 +1,8 @@
-export const dynamic = "force-dynamic"; // ensure route works without static envs at build
+import NextAuth from "next-auth";
+import { authOptions } from "@/lib/auth-config";
 
-import { auth } from "@/lib/auth";
+const handler = NextAuth(authOptions);
 
-export { auth as GET, auth as POST };
+export { handler as GET, handler as POST };
 
 

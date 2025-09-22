@@ -1,19 +1,9 @@
-import NextAuth, { DefaultSession, Session } from "next-auth";
+import { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 
-declare module "next-auth" {
-  interface Session {
-    user: DefaultSession["user"] & {
-      id: string;
-      username: string;
-      privacy?: string | null;
-    };
-  }
-}
-
-export const { handlers, signIn, signOut, auth } = NextAuth({
+export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   providers: [
     Credentials({
@@ -28,7 +18,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         try {
-          // Find user by username
           const user = await prisma.user.findUnique({
             where: { username: credentials.username },
           });
@@ -37,7 +26,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             return null;
           }
 
-          // Verify password
           const isValidPassword = await bcrypt.compare(
             credentials.password,
             user.password
@@ -68,7 +56,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return token;
     },
-    async session({ session, token }): Promise<Session> {
+    async session({ session, token }) {
       return {
         ...session,
         user: {
@@ -76,9 +64,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: token.id as string,
           username: token.username as string,
         },
-      } as Session;
+      };
     },
   },
-});
-
-
+};

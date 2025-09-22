@@ -103,19 +103,19 @@ export default function Home() {
           <div className="text-center animate-fade-in">
             <div className="w-16 h-16 bg-accent-100 rounded-full flex items-center justify-center mx-auto mb-4">
             </div>
-            <h3 className="text-xl font-semibold mb-2 text-white">Go Streaking</h3>
+            <h3 className="text-xl font-semibold mb-2 text-white">Embrace your passion</h3>
           </div>
 
           <div className="text-center animate-fade-in">
             <div className="w-16 h-16 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-4">
             </div>
-            <h3 className="text-xl font-semibold mb-2 text-white">Build your project-based life</h3>
+            <h3 className="text-xl font-semibold mb-2 text-white">Track your projects</h3>
           </div>
 
           <div className="text-center animate-fade-in">
           <div className="w-16 h-16 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-4">
           </div>
-            <h3 className="text-xl font-semibold mb-2 text-white">Commiserate</h3>
+            <h3 className="text-xl font-semibold mb-2 text-white">Share your progress</h3>
           </div>
         </div>
       </div>
