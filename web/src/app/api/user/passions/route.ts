@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth-config";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 
@@ -7,9 +8,13 @@ const addPassionSchema = z.object({
   passionId: z.string(),
 });
 
+const addMultiplePassionsSchema = z.object({
+  passionIds: z.array(z.string()),
+});
+
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
+    const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -51,60 +56,89 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
+    const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json();
-    const { passionId } = addPassionSchema.parse(body);
 
-    // Verify passion exists
-    const passion = await prisma.passion.findUnique({
-      where: { id: passionId },
-    });
+    // Support both single passion and multiple passions
+    if (body.passionIds && Array.isArray(body.passionIds)) {
+      // Handle multiple passions (for onboarding)
+      const { passionIds } = addMultiplePassionsSchema.parse(body);
 
-    if (!passion) {
-      return NextResponse.json(
-        { error: "Passion not found" },
-        { status: 404 }
-      );
-    }
+      // Remove existing user passions
+      await prisma.userPassion.deleteMany({
+        where: {
+          userId: session.user.id,
+        },
+      });
 
-    // Check if user already has this passion
-    const existingUserPassion = await prisma.userPassion.findUnique({
-      where: {
-        userId_passionId: {
+      // Add new user passions
+      if (passionIds.length > 0) {
+        const userPassions = passionIds.map((passionId) => ({
+          userId: session.user.id,
+          passionId: passionId,
+        }));
+
+        await prisma.userPassion.createMany({
+          data: userPassions,
+        });
+      }
+
+      return NextResponse.json({ success: true }, { status: 200 });
+    } else {
+      // Handle single passion (existing functionality)
+      const { passionId } = addPassionSchema.parse(body);
+
+      // Verify passion exists
+      const passion = await prisma.passion.findUnique({
+        where: { id: passionId },
+      });
+
+      if (!passion) {
+        return NextResponse.json(
+          { error: "Passion not found" },
+          { status: 404 }
+        );
+      }
+
+      // Check if user already has this passion
+      const existingUserPassion = await prisma.userPassion.findUnique({
+        where: {
+          userId_passionId: {
+            userId: session.user.id,
+            passionId,
+          },
+        },
+      });
+
+      if (existingUserPassion) {
+        return NextResponse.json(
+          { error: "User already has this passion" },
+          { status: 409 }
+        );
+      }
+
+      // Add passion to user
+      const userPassion = await prisma.userPassion.create({
+        data: {
           userId: session.user.id,
           passionId,
         },
-      },
-    });
-
-    if (existingUserPassion) {
-      return NextResponse.json(
-        { error: "User already has this passion" },
-        { status: 409 }
-      );
-    }
-
-    // Add passion to user
-    const userPassion = await prisma.userPassion.create({
-      data: {
-        userId: session.user.id,
-        passionId,
-      },
-      include: {
-        passion: {
-          include: {
-            parent: true,
-            children: true,
+        include: {
+          passion: {
+            include: {
+              parent: true,
+              children: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    return NextResponse.json({ userPassion }, { status: 201 });
+      return NextResponse.json({ userPassion }, { status: 201 });
+    }
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -113,7 +147,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.error("Error adding user passion:", error);
+    console.error("Error adding user passion(s):", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -123,7 +157,7 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const session = await auth();
+    const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

@@ -82,13 +82,13 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-accent-400 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-primary-800">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
             {isLogin ? "Sign in to your account" : "Create your account"}
           </h2>
-          <p className="mt-2 text-center text-sm text-primary-600">
+          <p className="mt-2 text-center text-sm text-white">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
               type="button"
@@ -97,7 +97,7 @@ export default function AuthPage() {
                 setError("");
                 setFormData({ username: "", email: "", password: "" });
               }}
-              className="font-medium text-accent-600 hover:text-accent-700 transition-colors"
+              className="font-medium text-secondary-400 hover:text-secondary-300 transition-colors underline"
             >
               {isLogin ? "Sign up" : "Sign in"}
             </button>
@@ -107,7 +107,7 @@ export default function AuthPage() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="bg-white rounded-lg shadow-medium p-6 space-y-4">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-primary-700 mb-1">
+              <label htmlFor="username" className="block text-sm font-medium text-black mb-1">
                 Username
               </label>
               <input
@@ -115,7 +115,7 @@ export default function AuthPage() {
                 name="username"
                 type="text"
                 required
-                className="appearance-none relative block w-full px-3 py-2 border border-neutral-300 placeholder-primary-400 text-primary-900 rounded-md focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 focus:z-10 sm:text-sm transition-colors"
+                className="appearance-none relative block w-full px-3 py-2 border border-neutral-300 placeholder-primary-400 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 focus:z-10 sm:text-sm transition-colors"
                 placeholder="Enter your username"
                 value={formData.username}
                 onChange={handleInputChange}
@@ -124,14 +124,14 @@ export default function AuthPage() {
             
             {!isLogin && (
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-primary-700 mb-1">
+                <label htmlFor="email" className="block text-sm font-medium text-black mb-1">
                   Email (optional)
                 </label>
                 <input
                   id="email"
                   name="email"
                   type="email"
-                  className="appearance-none relative block w-full px-3 py-2 border border-neutral-300 placeholder-primary-400 text-primary-900 rounded-md focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 focus:z-10 sm:text-sm transition-colors"
+                  className="appearance-none relative block w-full px-3 py-2 border border-neutral-300 placeholder-primary-400 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 focus:z-10 sm:text-sm transition-colors"
                   placeholder="Enter your email"
                   value={formData.email}
                   onChange={handleInputChange}
@@ -140,7 +140,7 @@ export default function AuthPage() {
             )}
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-primary-700 mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-black mb-1">
                 Password
               </label>
               <input
@@ -148,7 +148,7 @@ export default function AuthPage() {
                 name="password"
                 type="password"
                 required
-                className="appearance-none relative block w-full px-3 py-2 border border-neutral-300 placeholder-primary-400 text-primary-900 rounded-md focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 focus:z-10 sm:text-sm transition-colors"
+                className="appearance-none relative block w-full px-3 py-2 border border-neutral-300 placeholder-primary-400 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-accent-500 focus:z-10 sm:text-sm transition-colors"
                 placeholder="Enter your password"
                 value={formData.password}
                 onChange={handleInputChange}
@@ -166,7 +166,7 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-medium hover:shadow-large transition-all"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-primary-800 bg-secondary-400 hover:bg-secondary-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary-400 disabled:opacity-50 disabled:cursor-not-allowed shadow-medium hover:shadow-large transition-all"
             >
               {loading ? "Please wait..." : isLogin ? "Sign in" : "Sign up"}
             </button>
