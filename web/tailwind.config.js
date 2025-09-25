@@ -10,16 +10,16 @@ module.exports = {
       colors: {
         // Brand colors
         primary: {
-          50: '#f8f6f1',
-          100: '#efebe0',
-          200: '#dcd1b8',
-          300: '#c9b690',
-          400: '#b69c68',
-          500: '#94814a', // Lighter version of brown
-          600: '#594E36', // Main brown
-          700: '#4a412e',
-          800: '#3b3525',
-          900: '#2c281c',
+          50: '#f6f4f0',
+          100: '#ede7db',
+          200: '#d9ccb0',
+          300: '#c5b085',
+          400: '#a89464',
+          500: '#8b7849',
+          600: '#4a3e2a', // Darker main brown
+          700: '#3d3322',
+          800: '#30291b',
+          900: '#241f15',
         },
         secondary: {
           50: '#fefcf0',

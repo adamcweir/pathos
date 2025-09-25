@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { ProjectStatus, ProjectStage } from "@prisma/client";
 
 interface Project {
@@ -76,6 +77,18 @@ export default function ProjectsPage() {
       fetchPassions();
     }
   }, [session, selectedStatus]);
+
+  // Prefill create form from query params
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const shouldOpen = params.get("create") === "1";
+    const passionId = params.get("passionId") || "";
+    if (shouldOpen) {
+      setShowCreateForm(true);
+      setNewProject((prev) => ({ ...prev, passionId }));
+    }
+  }, []);
 
   const fetchProjects = async () => {
     try {
@@ -190,34 +203,34 @@ export default function ProjectsPage() {
 
       {/* Create Project Form */}
       {showCreateForm && (
-        <div className="mb-6 p-4 border rounded-lg bg-gray-50">
+        <div className="mb-6 p-4 border border-gray-300 rounded-lg bg-white text-black">
           <form onSubmit={handleCreateProject} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Title</label>
+              <label className="block text-sm font-medium mb-1 text-black">Title</label>
               <input
                 type="text"
                 value={newProject.title}
                 onChange={(e) => setNewProject({...newProject, title: e.target.value})}
                 required
-                className="w-full p-2 border rounded-md"
+                className="w-full p-2 border border-gray-300 rounded-md bg-white text-black placeholder-gray-600"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
+              <label className="block text-sm font-medium mb-1 text-black">Description</label>
               <textarea
                 value={newProject.description}
                 onChange={(e) => setNewProject({...newProject, description: e.target.value})}
-                className="w-full p-2 border rounded-md"
+                className="w-full p-2 border border-gray-300 rounded-md bg-white text-black placeholder-gray-600"
                 rows={3}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Passion</label>
+              <label className="block text-sm font-medium mb-1 text-black">Passion</label>
               <select
                 value={newProject.passionId}
                 onChange={(e) => setNewProject({...newProject, passionId: e.target.value})}
                 required
-                className="w-full p-2 border rounded-md"
+                className="w-full p-2 border border-gray-300 rounded-md bg-white text-black"
               >
                 <option value="">Select a passion</option>
                 {passions.map((passion) => (
@@ -229,11 +242,11 @@ export default function ProjectsPage() {
             </div>
             <div className="flex gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
+                <label className="block text-sm font-medium mb-1 text-black">Status</label>
                 <select
                   value={newProject.status}
                   onChange={(e) => setNewProject({...newProject, status: e.target.value as ProjectStatus})}
-                  className="p-2 border rounded-md"
+                  className="p-2 border border-gray-300 rounded-md bg-white text-black"
                 >
                   {Object.values(ProjectStatus).map((status) => (
                     <option key={status} value={status}>
@@ -243,11 +256,11 @@ export default function ProjectsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Stage</label>
+                <label className="block text-sm font-medium mb-1 text-black">Stage</label>
                 <select
                   value={newProject.stage}
                   onChange={(e) => setNewProject({...newProject, stage: e.target.value as ProjectStage})}
-                  className="p-2 border rounded-md"
+                  className="p-2 border border-gray-300 rounded-md bg-white text-black"
                 >
                   {Object.values(ProjectStage).map((stage) => (
                     <option key={stage} value={stage}>
@@ -291,7 +304,7 @@ export default function ProjectsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => (
-            <div key={project.id} className="border rounded-lg p-4 bg-white shadow-sm">
+            <Link href={`/projects/${project.id}`} key={project.id} className="border rounded-lg p-4 bg-white text-black shadow-sm">
               <div className="flex items-start justify-between mb-3">
                 <h3 className="text-lg font-semibold">{project.title}</h3>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[project.status]}`}>
@@ -318,7 +331,7 @@ export default function ProjectsPage() {
               <div className="mt-4 text-xs text-gray-500">
                 Updated {new Date(project.updatedAt).toLocaleDateString()}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}
