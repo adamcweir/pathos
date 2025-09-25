@@ -21,21 +21,21 @@ This application is a social platform for tracking and sharing progress in perso
 
 
 # Core Objects
-- User
-- Passion: categories (and subcategories), like woodworking, reading, writing (novel, poetry, song), cooking, learning a language etc.. Also ability for custom passions. 
-- Project: named container under a passion. Different stages or chapters, and setbacks. 
-- Entry: an instance of someone working on a passion or project
-- Reactions: kudos, comments
-- Connection: friends or follows
+	• User
+	• Passion: categories (and subcategories), like woodworking, reading, writing (novel, poetry, song), cooking, learning a language etc.. Also ability for custom passions. 
+	• Project: named container under a passion. Different stages or chapters, and setbacks. 
+	• Entry: an instance of someone working on a passion or project
+	• Reactions: kudos, comments
+	• Connection: friends or follows
 
 # Features
-- Privacy: ability to set profile to private, friends, or public to decide discoverability. 
+	• Privacy: ability to set profile to private, friends, or public to decide discoverability. 
 
 # Getting Started
-- Set up a profile. Name, location, passions (choose 3-5, with the ability to add more)
-- add your current projects, their status, and their stage
+	• Set up a profile. Name, location, passions (choose 3-5, with the ability to add more)
+	• add your current projects, their status, and their stage
 
 # Tech
-- Frontend/backend: Next.js 14 with TypeScript
-UI: Tailwind CSS + shadcn/ui
-Analytics: PostHog
+	• Frontend/backend: Next.js 14 with TypeScript
+	• UI: Tailwind CSS + shadcn/ui
+	• Analytics: PostHog
