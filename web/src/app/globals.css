@@ -3,13 +3,13 @@
 
 :root {
   /* Brand colors */
-  --color-primary: #594E36;
+  --color-primary: #4a3e2a;
   --color-secondary: #F3E37C;
   --color-accent: #9AC2C9;
   --color-neutral: #e8e8e8;
-  
+
   /* Background and text */
-  --background: #594E36;
+  --background: #4a3e2a;
   --foreground: #ffffff;
   --surface: #ffffff;
   

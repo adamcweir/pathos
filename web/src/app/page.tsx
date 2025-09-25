@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import FeedPreview from "@/components/FeedPreview";
 import { useSession } from "next-auth/react";
 
 export default function Home() {
@@ -81,44 +82,43 @@ export default function Home() {
   }
 
   return (
-    <main className="p-6">
-      <div className="max-w-4xl mx-auto text-center">
-        <h1 className="text-5xl font-bold text-white mb-6">
-          Welcome to <span className="text-secondary-400">pathos</span>
-        </h1>
-        <p className="text-xl text-neutral-100 mb-8">
-          Social, for personal passions and pursuits. Relish and suffer in it together.
-        </p>
+    <main className="min-h-screen">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800">
+        {/* Background decoration */}
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary-800/10 to-primary-900/20"></div>
 
-        <div className="mb-12">
-          <Link
-            href="/auth"
-            className="inline-block bg-secondary-400 text-primary-800 font-semibold py-3 px-8 rounded-lg hover:bg-secondary-500 transition-colors text-lg shadow-medium hover:shadow-large"
-          >
-            Get Started
-          </Link>
-        </div>
+        <div className="relative max-w-6xl mx-auto px-6 py-24">
+          <div className="text-center">
+            <h1 className="text-6xl md:text-7xl font-bold text-white mb-8 tracking-tight">
+              Welcome to{" "}
+              <span className="inline-block rounded-md bg-yellow-400 px-3 py-3 text-black">
+                pathos
+              </span>
+            </h1>
 
-        <div className="grid md:grid-cols-3 gap-8 mt-16">
-          <div className="text-center animate-fade-in">
-            <div className="w-16 h-16 bg-accent-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <p className="text-xl md:text-2xl text-primary-100 mb-4 max-w-3xl mx-auto leading-relaxed">
+              Where personal passions come alive through shared journeys
+            </p>
+
+            {/* Enhanced Get Started Button */}
+            <div className="mb-16">
+              <Link
+                href="/auth"
+                className="group relative inline-flex items-center gap-2 bg-white text-black font-bold py-4 px-10 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-2xl shadow-xl text-lg hover:bg-secondary-500"
+              >
+                <span className="relative z-10">Get Curious</span>
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
             </div>
-            <h3 className="text-xl font-semibold mb-2 text-white">Embrace your passion</h3>
-          </div>
-
-          <div className="text-center animate-fade-in">
-            <div className="w-16 h-16 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            </div>
-            <h3 className="text-xl font-semibold mb-2 text-white">Track your projects</h3>
-          </div>
-
-          <div className="text-center animate-fade-in">
-          <div className="w-16 h-16 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          </div>
-            <h3 className="text-xl font-semibold mb-2 text-white">Share your progress</h3>
           </div>
         </div>
       </div>
+
+      {/* Feed Preview */}
+      <FeedPreview />
     </main>
   );
 }

@@ -12,8 +12,17 @@ export async function middleware(req: NextRequest) {
   try {
     const token = await getToken({ req });
     
-    // Redirect first-time users to onboarding
-    if (token?.sub && !token.name && pathname !== "/onboarding") {
+    // Redirect first-time users to onboarding (allow onboarding subpaths, feed, profile, and projects)
+    if (
+      token?.sub &&
+      !token.name &&
+      !(
+        pathname.startsWith("/onboarding") ||
+        pathname.startsWith("/feed") ||
+        pathname.startsWith("/profile") ||
+        pathname.startsWith("/projects")
+      )
+    ) {
       const url = req.nextUrl.clone();
       url.pathname = "/onboarding";
       return NextResponse.redirect(url);

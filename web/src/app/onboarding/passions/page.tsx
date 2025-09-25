@@ -135,7 +135,7 @@ export default function PassionDetailsPage() {
     if (currentPassionIndex < userPassions.length - 1) {
       setCurrentPassionIndex(currentPassionIndex + 1);
     } else {
-      router.push("/profile");
+      router.push("/feed");
     }
   };
 
@@ -154,7 +154,7 @@ export default function PassionDetailsPage() {
       });
 
       if (response.ok) {
-        router.push("/profile");
+        router.push("/feed");
       } else {
         setError("Failed to save your details. Please try again.");
       }
