@@ -4,13 +4,13 @@ This application is a social platform for tracking and sharing progress in perso
 <img width="839" height="730" alt="Screenshot 2025-09-25 at 1 08 47 PM" src="https://github.com/user-attachments/assets/351c4fdf-5a40-47bd-ad66-b85ec5a3c036" />
 
 
-Core Value
+# Core Value
 	• Connection: Maintain lightweight, ongoing visibility into friends’ creative lives.
 	• Expression: Provide a simple way to log progress with photos, notes, or excerpts.
 	• Discovery: Surface others who pursue the same passions, organized by project stage or locality.
 	• Encouragement: Offer kudos, comments, and low-friction prompts to keep projects alive.
 
-Key Features (MVP)
+# Key Features (MVP)
 	• User profiles with passions and active projects.
 	• Project creation and status tracking (exploring, active, paused, finished).
 	• Entry logging with text, media, links, and tags.
