@@ -1,4 +1,4 @@
-\# Purpose
+# Purpose
 This application is a social platform for tracking and sharing progress in personal passions and creative pursuits. Unlike fitness or productivity trackers, it emphasizes meaningful, project-based activities such as woodworking, reading, and writing. The app enables users to capture updates, share evidence of progress, and connect with others who share similar interests.
 
 <img width="839" height="730" alt="Screenshot 2025-09-25 at 1 08 47 PM" src="https://github.com/user-attachments/assets/351c4fdf-5a40-47bd-ad66-b85ec5a3c036" />
