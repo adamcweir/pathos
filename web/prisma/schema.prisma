@@ -64,6 +64,7 @@ model User {
   entries Entry[]
   milestones Milestone[]
   tasks Task[]
+  timeEntries TimeEntry[]
 }
 
 model Account {
@@ -150,10 +151,11 @@ model Project {
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   passion Passion @relation(fields: [passionId], references: [id], onDelete: Cascade)
-  
+
   entries Entry[]
   milestones Milestone[]
   tasks Task[]
+  timeEntries TimeEntry[]
 
   @@index([userId, status])
   @@index([passionId])
@@ -212,9 +214,10 @@ model Milestone {
   // Self-referential for milestone hierarchy
   parent   Milestone?  @relation("MilestoneHierarchy", fields: [parentId], references: [id])
   children Milestone[] @relation("MilestoneHierarchy")
-  
+
   entries Entry[]
   tasks   Task[]
+  timeEntries TimeEntry[]
 
   @@index([projectId, order])
   @@index([userId, status])
@@ -228,10 +231,10 @@ model Task {
   userId      String
   projectId   String?  // Optional - can be standalone
   milestoneId String?  // Optional - can be unassigned
-  
+
   // Ordering
   order       Int      @default(0)
-  
+
   // Timeline
   dueDate     DateTime?
   completedAt DateTime?
@@ -241,8 +244,35 @@ model Task {
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   project   Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   milestone Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  timeEntries TimeEntry[]
 
   @@index([userId, completed])
   @@index([projectId, order])
   @@index([milestoneId, order])
+}
+
+model TimeEntry {
+  id          String   @id @default(cuid())
+  description String?  // What was worked on
+  duration    Int      // Duration in minutes
+  userId      String
+  projectId   String?  // Optional - general project time
+  taskId      String?  // Optional - specific task time
+  milestoneId String?  // Optional - milestone time
+
+  // Timeline
+  startedAt   DateTime // When the work started
+  endedAt     DateTime // When the work ended
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task      Task?      @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  milestone Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+
+  @@index([userId, startedAt])
+  @@index([projectId, startedAt])
+  @@index([taskId])
+  @@index([milestoneId])
 }
