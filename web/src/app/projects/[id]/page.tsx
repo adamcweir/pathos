@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { ProjectDetailClient } from "@/components/ProjectDetailClient";
 
 async function getData(userId: string, projectId: string) {
   const project = await prisma.project.findUnique({
@@ -12,7 +13,7 @@ async function getData(userId: string, projectId: string) {
   });
   if (!project || project.userId !== userId) return null;
 
-  const [entries, milestones] = await Promise.all([
+  const [entries, milestones, tasks, timeEntries] = await Promise.all([
     prisma.entry.findMany({
       where: { userId, projectId },
       orderBy: { publishedAt: "desc" },
@@ -22,16 +23,37 @@ async function getData(userId: string, projectId: string) {
     prisma.milestone.findMany({
       where: { userId, projectId },
       orderBy: [{ order: "asc" }, { createdAt: "asc" }],
-      select: {
-        id: true,
-        title: true,
-        status: true,
-        targetDate: true,
+      include: {
+        tasks: {
+          select: { id: true, title: true, completed: true },
+          orderBy: { order: "asc" }
+        }
+      },
+    }),
+    prisma.task.findMany({
+      where: { userId, projectId },
+      orderBy: [{ completed: "asc" }, { order: "asc" }, { createdAt: "asc" }],
+      include: {
+        milestone: {
+          select: { title: true, status: true }
+        }
+      },
+    }),
+    prisma.timeEntry.findMany({
+      where: { userId, projectId },
+      orderBy: { startedAt: "desc" },
+      take: 20,
+      include: {
+        task: { select: { title: true } },
+        milestone: { select: { title: true } }
       },
     }),
   ]);
 
-  return { project, entries, milestones };
+  // Calculate total time spent
+  const totalTimeSpent = timeEntries.reduce((total, entry) => total + entry.duration, 0);
+
+  return { project, entries, milestones, tasks, timeEntries, totalTimeSpent };
 }
 
 export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
@@ -41,83 +63,17 @@ export default async function ProjectDetailPage({ params }: { params: { id: stri
   const data = await getData(session.user.id, params.id);
   if (!data) redirect("/projects");
 
-  const { project, entries, milestones } = data;
+  const { project, entries, milestones, tasks, timeEntries, totalTimeSpent } = data;
 
   return (
-    <main className="p-6 max-w-3xl mx-auto text-white">
-      <div className="mb-6">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">{project.passion?.icon || "🎯"}</span>
-          <div>
-            <h1 className="text-2xl font-bold">{project.title}</h1>
-            <div className="text-sm text-white/70">{project.passion?.name}</div>
-          </div>
-        </div>
-      </div>
-
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold mb-3">Recent updates</h2>
-        {entries.length === 0 ? (
-          <div className="text-white/70">No updates yet.</div>
-        ) : (
-          <ul className="space-y-2">
-            {entries.map((e) => (
-              <li key={e.id} className="bg-white/10 rounded-md p-3 flex items-center justify-between">
-                <div>
-                  <div className="font-medium">{e.title}</div>
-                  <div className="text-xs text-white/60">{e.type} · {new Date(e.publishedAt!).toLocaleString()}</div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="mb-10">
-        <h2 className="text-xl font-semibold mb-3">Upcoming milestones</h2>
-        {milestones.length === 0 ? (
-          <div className="text-white/70">No milestones yet.</div>
-        ) : (
-          <ul className="space-y-2">
-            {milestones.map((m) => (
-              <li key={m.id} className="bg-white/10 rounded-md p-3 flex items-center justify-between">
-                <div>
-                  <div className="font-medium">{m.title}</div>
-                  <div className="text-xs text-white/60">{m.status}{m.targetDate ? ` · due ${new Date(m.targetDate).toLocaleDateString()}` : ""}</div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <NextStepsForm projectId={project.id} />
-    </main>
-  );
-}
-
-function NextStepsForm({ projectId }: { projectId: string }) {
-  return (
-    <form action="/api/tasks" method="post" className="bg-white/10 rounded-md p-4">
-      <h3 className="text-lg font-semibold mb-2">Set next steps</h3>
-      <input type="hidden" name="projectId" value={projectId} />
-      <div className="flex gap-2 mb-3">
-        <input name="title" placeholder="Next step" className="flex-1 px-3 py-2 bg-white/20 border border-white/30 rounded-md text-white placeholder-white/50" />
-        <button formAction={async (formData) => {
-          "use server";
-          const title = String(formData.get("title") || "").trim();
-          if (!title) return;
-          const projectId = String(formData.get("projectId"));
-          // Basic server action using fetch to our own API to reuse validation/ownership checks
-          await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/tasks`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ title, projectId }),
-          });
-        }} className="bg-secondary-400 text-primary-800 px-4 rounded-md hover:bg-secondary-500">Add</button>
-      </div>
-      <div className="text-white/60 text-sm">Add a quick next step to keep momentum.</div>
-    </form>
+    <ProjectDetailClient
+      project={project}
+      initialEntries={entries}
+      initialMilestones={milestones}
+      initialTasks={tasks}
+      initialTimeEntries={timeEntries}
+      totalTimeSpent={totalTimeSpent}
+    />
   );
 }
 

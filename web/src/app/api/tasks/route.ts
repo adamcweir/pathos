@@ -12,6 +12,15 @@ const createTaskSchema = z.object({
   order: z.number().int().min(0).default(0),
 });
 
+const updateTaskSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().optional(),
+  completed: z.boolean().optional(),
+  milestoneId: z.string().optional(),
+  dueDate: z.string().datetime().optional(),
+  order: z.number().int().min(0).optional(),
+});
+
 const querySchema = z.object({
   projectId: z.string().optional(),
   milestoneId: z.string().optional(),
@@ -171,13 +180,105 @@ export async function GET(request: NextRequest) {
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid query parameters", details: error.errors }, 
+        { error: "Invalid query parameters", details: error.errors },
         { status: 400 }
       );
     }
 
     return NextResponse.json(
-      { error: "Internal server error" }, 
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const token = await getToken({ req: request });
+    if (!token?.sub) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const taskId = searchParams.get("id");
+
+    if (!taskId) {
+      return NextResponse.json({ error: "Task ID is required" }, { status: 400 });
+    }
+
+    const body = await request.json();
+    const validatedData = updateTaskSchema.parse(body);
+
+    // Verify user owns the task
+    const existingTask = await prisma.task.findFirst({
+      where: { id: taskId, userId: token.sub }
+    });
+
+    if (!existingTask) {
+      return NextResponse.json(
+        { error: "Task not found or unauthorized" },
+        { status: 404 }
+      );
+    }
+
+    // If milestoneId is being updated, verify ownership
+    if (validatedData.milestoneId !== undefined && validatedData.milestoneId !== null) {
+      const milestone = await prisma.milestone.findFirst({
+        where: {
+          id: validatedData.milestoneId,
+          userId: token.sub
+        }
+      });
+
+      if (!milestone) {
+        return NextResponse.json(
+          { error: "Milestone not found or unauthorized" },
+          { status: 404 }
+        );
+      }
+    }
+
+    const updateData: any = {};
+
+    if (validatedData.title !== undefined) updateData.title = validatedData.title;
+    if (validatedData.description !== undefined) updateData.description = validatedData.description;
+    if (validatedData.completed !== undefined) {
+      updateData.completed = validatedData.completed;
+      updateData.completedAt = validatedData.completed ? new Date() : null;
+    }
+    if (validatedData.milestoneId !== undefined) updateData.milestoneId = validatedData.milestoneId;
+    if (validatedData.dueDate !== undefined) updateData.dueDate = validatedData.dueDate ? new Date(validatedData.dueDate) : null;
+    if (validatedData.order !== undefined) updateData.order = validatedData.order;
+
+    const updatedTask = await prisma.task.update({
+      where: { id: taskId },
+      data: updateData,
+      include: {
+        user: {
+          select: { username: true, name: true }
+        },
+        project: {
+          select: { title: true, passion: { select: { name: true } } }
+        },
+        milestone: {
+          select: { title: true, status: true }
+        }
+      }
+    });
+
+    return NextResponse.json(updatedTask);
+  } catch (error) {
+    console.error("Error updating task:", error);
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: "Validation error", details: error.errors },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
